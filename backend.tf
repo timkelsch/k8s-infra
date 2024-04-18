@@ -1,8 +1,8 @@
 terraform {
   backend "s3" {
-    bucket = "terraform-state-975049962234"
-    # key    = "your-project/terraform.tfstate"
-    dynamodb_table = "terraform-state-975049962234"
+    bucket = "tf-state-287140326780"
+    key    = "playground/dev"
+    dynamodb_table = "tf-state-287140326780"
     region = "us-west-2" # Oregon
   }
 }
