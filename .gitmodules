@@ -1,0 +1,3 @@
+[submodule "tf-bootstrap"]
+	path = tf-bootstrap
+	url = git@github.com:timkelsch/cloudformation-terraform-state-backend.git
