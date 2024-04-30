@@ -1,125 +1,158 @@
-// Cloning Terraform src code to /var/folders/99/ybl8q31d3w598svh5jclmbrc0000gn/T/terraform_src...
- code has been checked out.
-
-data "aws_caller_identity" "current" {}
-
-data "aws_partition" "current" {}
-
-variable kops_user_name {
-  description = "Name of the IAM user that kops uses"
-  type = string
-  default = "KopsUser"
+module "kops_group" {
+  source                            = "terraform-aws-modules/iam/aws//modules/iam-group-with-policies"
+  version                           = "5.39.0"
+  name                              = "KopsGroup"
+  attach_iam_self_management_policy = false
+  group_users                       = [module.kops_user.iam_user_name]
+  custom_group_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
+    "arn:aws:iam::aws:policy/AmazonRoute53FullAccess",
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+    "arn:aws:iam::aws:policy/IAMFullAccess",
+    "arn:aws:iam::aws:policy/AmazonVPCFullAccess",
+    "arn:aws:iam::aws:policy/AmazonSQSFullAccess",
+    "arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess"
+  ]
+#   custom_group_policies = [
+#     {
+#       "name" : "sts-gci",
+#       "policy" : <<EOT
+# {
+#   "Version": "2023-09-06",
+#   "Statement": [
+#       {
+#           "Effect": "Allow",
+#           "Action": [
+#               "sts:GetCallerIdentity"
+#           ],
+#           "Resource": "*"
+#       }
+#   ]
+# }
+# EOT
+#     }
+#   ]
 }
 
-resource "aws_iam_group" "kops_group" {
-  // CF Property(ManagedPolicyArns) = [
-  //   "AmazonEC2FullAccess",
-  //   "AmazonRoute53FullAccess",
-  //   "AmazonS3FullAccess",
-  //   "IAMFullAccess",
-  //   "AmazonVPCFullAccess",
-  //   "AmazonSQSFullAccess",
-  //   "AmazonEventBridgeFullAccess"
-  // ]
+module "kops_user" {
+  source                        = "terraform-aws-modules/iam/aws//modules/iam-user"
+  version                       = "5.39.0"
+  name                          = "kops"
+  create_iam_user_login_profile = false
+  create_iam_access_key         = false
+
 }
 
-resource "aws_iam_user" "kops_user" {
-  name = var.kops_user_name
-}
-
-resource "aws_s3_bucket" "oidc_bucket" {
-  acl = "public-read"
+module "oidc_s3-bucket" {
+  source                   = "terraform-aws-modules/s3-bucket/aws"
+  version                  = "4.1.2"
+  bucket                   = "oidc-${random_id.random_string.hex}"
+  acl                      = "public-read"
+  control_object_ownership = true
+  object_ownership         = "BucketOwnerPreferred"
+  block_public_acls        = false
+  block_public_policy      = false
+  ignore_public_acls       = false
+  restrict_public_buckets  = false
 }
 
 resource "aws_s3_bucket_policy" "oidc_bucket_policy" {
+  bucket = module.oidc_s3-bucket.s3_bucket_id
   policy = jsonencode({
-      Id = "MyPolicy"
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Sid = "PublicReadForGetBucketObjects"
-          Effect = "Allow"
-          Principal = "*"
-          Action = "s3:GetObject"
-          Resource =           // Unable to resolve Fn::GetAtt with value: [
-          //   "OidcBucket"
-          // ]
-        },
-        {
-          Sid = "AdminPerms"
-          Effect = "Allow"
-          Principal = {
-            AWS = [
-              aws_iam_user.kops_user.arn,
-              "arn:aws:iam::287140326780:user/sam-user"
-            ]
-          }
-          Action = "s3:*"
-          Resource =           // Unable to resolve Fn::GetAtt with value: [
-          //   "OidcBucket"
-          // ]
-        }
-      ]
-    }
-  )
-  bucket = aws_s3_bucket.oidc_bucket.id
-}
-
-resource "aws_s3_bucket" "kops_cluster_state_bucket" {
-  versioning {
-    // CF Property(Status) = "Enabled"
-  }
-  bucket = {
-    ServerSideEncryptionConfiguration = [
+    Id      = "MyPolicy"
+    Version = "2012-10-17"
+    Statement = [
       {
-        ServerSideEncryptionByDefault = {
-          SSEAlgorithm = "aws:kms"
-          KMSMasterKeyID = aws_kms_key.bucket_key.arn
+        Sid       = "PublicReadForGetBucket"
+        Effect    = "Allow"
+        Principal = "*"
+        Action = [
+          "s3:Get*",
+          "s3:List*"
+        ]
+        Resource = [
+          "${module.oidc_s3-bucket.s3_bucket_arn}/*",
+          "${module.oidc_s3-bucket.s3_bucket_arn}"
+        ]
+      },
+      # {
+      #   Sid       = "PublicReadForGetBucketObjects"
+      #   Effect    = "Allow"
+      #   Principal = "*"
+      #   Action    = [
+      #     "s3:ListBucket"
+      #   ]
+      #   Resource = [
+      #     "${module.oidc_s3-bucket.s3_bucket_arn}"
+      #   ]
+      # },
+      {
+        Sid    = "AdminPerms"
+        Effect = "Allow"
+        Principal = {
+          AWS = [
+            module.kops_user.iam_user_arn,
+            "arn:aws:iam::287140326780:user/sam-user"
+          ]
         }
+        Action = "s3:*"
+        Resource = [
+          "${module.oidc_s3-bucket.s3_bucket_arn}",
+          "${module.oidc_s3-bucket.s3_bucket_arn}/*"
+        ]
       }
     ]
+    }
+  )
+}
+
+module "kops_cluster_state_s3-bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "4.1.2"
+  bucket  = "kops-cluster-state-${random_id.random_string.hex}"
+  server_side_encryption_configuration = {
+    rule = {
+      ApplyServerSideEncryptionByDefault = {
+        SSEAlgorithm = "AES256"
+      }
+    }
   }
-  // CF Property(PublicAccessBlockConfiguration) = {
-  //   BlockPublicAcls = true
-  //   BlockPublicPolicy = true
-  // }
+  versioning = {
+    enabled = true
+  }
 }
 
 resource "aws_s3_bucket_policy" "kops_cluster_state_bucket_policy" {
+  bucket = module.kops_cluster_state_s3-bucket.s3_bucket_id
   policy = jsonencode({
-      Id = "MyPolicy"
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Sid = "AdminPerms"
-          Effect = "Allow"
-          Principal = "arn:aws:iam::287140326780:user/sam-user"
-          Action = "s3:*"
-          Resource = aws_s3_bucket.kops_cluster_state_bucket.arn
-        }
-      ]
-    }
-  )
-  bucket = aws_s3_bucket.kops_cluster_state_bucket.id
-}
-
-resource "aws_kms_key" "bucket_key" {
-  is_enabled = true
-  enable_key_rotation = true
-  multi_region = true
-  policy = {
+    Id      = "MyPolicy"
     Version = "2012-10-17"
-    Id = "bucket-policy-1"
     Statement = [
       {
-        Sid = "Enable IAM User Permissions"
+        Sid    = "AdminPerms"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root"
+          AWS = [
+            module.kops_user.iam_user_arn,
+            "arn:aws:iam::287140326780:user/sam-user"
+          ]
         }
-        Action = "kms:*"
-        Resource = "*"
+        Action = "s3:*"
+        Resource = [
+          "${module.kops_cluster_state_s3-bucket.s3_bucket_arn}",
+          "${module.kops_cluster_state_s3-bucket.s3_bucket_arn}/*"
+        ]
       }
     ]
-  }
+    }
+  )
+}
+
+resource "random_id" "random_string" {
+  byte_length = 8
+
+}
+
+output "kops_cluster_state_s3-bucket_name" {
+  value = module.kops_cluster_state_s3-bucket.s3_bucket_id
 }
