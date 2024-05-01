@@ -13,7 +13,7 @@ STATE_TABLE=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} \
 BACKEND_BUCKET_KEY="thekubeground"
 
 # Create the key
-aws s3api put-object --bucket ${BACKEND_BUCKET} --key ${BACKEND_BUCKET_KEY} --content-length 0 --profile=k8s
+aws s3api put-object --bucket "${BACKEND_BUCKET}" --key "${BACKEND_BUCKET_KEY}" --content-length 0 --profile=k8s
 
 cat << EOF > backend.tf
 terraform {
