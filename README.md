@@ -1,78 +1,77 @@
 # k8s-infra
+This project bootstraps a Kubernetes cluster in AWS without using EKS.
 
-## Build from Scratch in Dedicated Account with Dedicated Domain:
+## Requirements
+1. An AWS account
+1. A Route53 hosted zone
+1. AWS CLI installed and configured for an admin user in your account
+1. kOps installed
+1. kubectl installed
+1. Terraform installed
+
+
+## Build K8S Cluster from Scratch in Dedicated Account with Dedicated Domain:
 1. Configure AWS CLI profile to connect to the right account and region
 1. Trigger the terraform bootstrap:
-    ```cd tf-bootstrap && make create-stack```
+
+    `$ cd tf-bootstrap && make create-stack`
 1. Install kubectl
 1. Install kOps
-1. Bootstrap the kOps infrastructure. Set variables.tf:deploy_kops-bootstrap=true
-    ```
-    terraform apply
-    ```
-1. Manually create an access key for the kops user, run `aws configure`, and run `export AWS_PROFILE=kops`.
+1. Bootstrap the kOps infrastructure. 
+
+    `$ terraform apply`
+1. Manually create an access key for the kops user and manually set up your AWS profile/credentials:
+
+    `$ aws configure`
 1. Create kOps cluster config:
-    ```
-    make create-cluster
-    ```
+
+   `$ make create-cluster`
 1. Add our SSH key:
-    ```
-    make add-ssh-key
-    ```
-1. Create k8s cluster via kOps:
-    ```
-    make build-cluster
-    ```
+
+    `$ make add-ssh-key`
+1. Build the k8s cluster config you created earlier via kOps:
+
+    `$ make build-cluster`
 1. Fix the kubeconfig:
-    ```
-    kops export kubeconfig --admin
-    ```
-1. Log in to the control-plane node:
-    ```
-    sshk # ssh -i ~/.ssh/v1.pem ubuntu@api.thekubeground.com
-    ```
+
+    `$ kops export kubeconfig --admin`
+1. Log in to the control-plane node to admire your handywork:
+
+    `$ make ssh-cp`
 
 
 ## Create and Expose an App to the Internet via NGINX Ingress Controller:
 1. Install the Nginx Ingress Controller via Helm:
-    ```
-    make install-nginx-ic
-    ```
+
+    `$ make install-nginx-ic`
 2. Deploy pod, service, ingress resources
-    ```
-    make deploy-application
-    ```
+
+    `$ make deploy-application`
 3. Create the CNAME record linking www.thekubeground.com with our AWS CLB.
-    ```
-    make generate-cname
-    ```
+
+    `$ make generate-cname`
 
 
 ## Create and Expose an App to the Internet via AWS Load Balancer Controller:
 1. Fix the aws-cluster-controller inline role policy:
-    ```
-    make update-aws-cluster-controller-policy
-    ```
+
+    `$ make update-aws-cluster-controller-policy`
 1. Set the IMDS hops:
-    ```
-    make set-imds-hops
-    ```
+
+    `$ make set-imds-hops`
 1. Log into the control plane node:
-    ```
-    sshk # ssh -i ~/.ssh/v1.pem ubuntu@api.thekubeground.com
-    ```
+
+    `$ make ssh-cp`
 1. Create a web server:
-    ```
-    k run nginx --image nginx --port 80
-    ```
+
+    `k run nginx --image nginx --port 80`
 1. Expose the pod with a LoadBalancer service:
-    ```
-    k expose pod nginx --name=nginx-svc --type=LoadBalancer
-    ```
+
+    `k expose pod nginx --name=nginx-svc --type=LoadBalancer`
 1. Verify your work:
-    ```
-    make check-website
-    ```
+
+    `$ make check-website`
+
 
 ## Tasks:
 1. Automate all these steps in a CI/CD pipeline.

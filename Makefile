@@ -81,6 +81,10 @@ deploy-application:
 create-cname:
 	cd scripts && "./${CNAME_CREATOR}"
 
+ssh-cp:
+	ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" \
+		-i ${SSH_KEY} ubuntu@api.thekubeground.com
+
 #create-cluster:
 #	kops create cluster \
 		--name=${NAME} \
