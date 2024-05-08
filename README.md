@@ -48,7 +48,6 @@ Create a Service and Expose it to the Internet via NGINX Ingress Controller:
 
 
 Create a Service and Expose it to Internet via AWS Load Balancer Controller:
-
 1. Fix the aws-cluster-controller inline role policy:
     ```
     make update-aws-cluster-controller-policy
@@ -75,9 +74,11 @@ Create a Service and Expose it to Internet via AWS Load Balancer Controller:
     ```
 
 Tasks:
-1. Set up SSL on ELB
+1. Automate all these steps in a CI/CD pipeline.
 
-
-Comleted Tasks:
+Completed Tasks:
+1. Manifests for pod, service, and ingress are written and automated.
+1. DNS requirements are automated
+1. cert-manager auto-generates certs when an ingress resource is created
 1. Implemented manual cluster backup
 1. Got aws-load-balancer-controller working
