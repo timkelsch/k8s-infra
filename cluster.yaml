@@ -64,6 +64,7 @@ spec:
   sshAccess:
   - 0.0.0.0/0
   - ::/0
+  sshKeyName: thekubeground
   subnets:
   - cidr: 172.20.0.0/16
     name: us-west-2a

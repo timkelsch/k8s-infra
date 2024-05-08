@@ -140,7 +140,7 @@ module "kops_cluster_backup_s3-bucket" {
 resource "aws_s3_bucket_versioning" "versioning_example" {
   bucket = module.kops_cluster_backup_s3-bucket.s3_bucket_id
   versioning_configuration {
-    status = "Disabled"
+    status = "Enabled"
   }
 }
 
@@ -170,6 +170,26 @@ resource "aws_s3_bucket_policy" "kops_cluster_backup_bucket_policy" {
   )
 }
 
+#Name of the key pair
+variable "key_pair_name" {
+  type = string
+  default  = "thekubeground"
+}
+
+resource "tls_private_key" "thekubeground_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "demo_key_pair" {
+  key_name   = var.key_pair_name
+  public_key = tls_private_key.thekubeground_key.public_key_openssh
+  
+  provisioner "local-exec"{
+    command = "echo '${tls_private_key.thekubeground_key.private_key_pem}' > ~/.ssh/${var.key_pair_name}.pem && chmod 400 ~/.ssh/${var.key_pair_name}.pem"
+  }
+}
+
 resource "random_id" "random_string" {
   byte_length = 8
 
@@ -183,4 +203,18 @@ data "aws_caller_identity" "current" {}
 
 locals {
     account_id = data.aws_caller_identity.current.account_id
+}
+
+output "account_id" {
+  value = local.account_id
+}
+
+output "caller_arn" {
+  value = data.aws_caller_identity.current.arn
+}
+
+data "aws_region" "current" {}
+
+output "aws_region" {
+  value = data.aws_region.current.name
 }

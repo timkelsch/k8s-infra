@@ -20,21 +20,15 @@ This project bootstraps a Kubernetes cluster in AWS without using EKS.
 1. Bootstrap the kOps infrastructure. 
 
     `$ terraform apply`
-1. Manually create an access key for the kops user and manually set up your AWS profile/credentials:
+1. Manually create an access key for the kops user and configure your AWS user:
 
     `$ aws configure`
 1. Create kOps cluster config:
 
    `$ make create-cluster`
-1. Add our SSH key:
-
-    `$ make add-ssh-key`
 1. Build the k8s cluster config you created earlier via kOps:
 
     `$ make build-cluster`
-1. Fix the kubeconfig:
-
-    `$ kops export kubeconfig --admin`
 1. Log in to the control-plane node to admire your handywork:
 
     `$ make ssh-cp`
@@ -77,6 +71,8 @@ This project bootstraps a Kubernetes cluster in AWS without using EKS.
 1. Automate all these steps in a CI/CD pipeline.
 
 ## Completed Tasks:
+1. Automated the kops user access key creation and aws cli profile configuration 
+1. Moved SSH keypair creation to kops-bootstrap terraform code
 1. Manifests for pod, service, and ingress are written and automated.
 1. DNS requirements are automated
 1. cert-manager auto-generates certs when an ingress resource is created
