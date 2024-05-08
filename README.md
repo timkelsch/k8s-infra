@@ -1,6 +1,6 @@
 # k8s-infra
 
-Build from Scratch in Dedicated Account with Dedicated Domain:
+## Build from Scratch in Dedicated Account with Dedicated Domain:
 1. Configure AWS CLI profile to connect to the right account and region
 1. Trigger the terraform bootstrap:
     ```cd tf-bootstrap && make create-stack```
@@ -32,7 +32,8 @@ Build from Scratch in Dedicated Account with Dedicated Domain:
     sshk # ssh -i ~/.ssh/v1.pem ubuntu@api.thekubeground.com
     ```
 
-Create a Service and Expose it to the Internet via NGINX Ingress Controller:
+
+## Create and Expose an App to the Internet via NGINX Ingress Controller:
 1. Install the Nginx Ingress Controller via Helm:
     ```
     make install-nginx-ic
@@ -47,7 +48,7 @@ Create a Service and Expose it to the Internet via NGINX Ingress Controller:
     ```
 
 
-Create a Service and Expose it to Internet via AWS Load Balancer Controller:
+## Create and Expose an App to the Internet via AWS Load Balancer Controller:
 1. Fix the aws-cluster-controller inline role policy:
     ```
     make update-aws-cluster-controller-policy
@@ -73,10 +74,10 @@ Create a Service and Expose it to Internet via AWS Load Balancer Controller:
     make check-website
     ```
 
-Tasks:
+## Tasks:
 1. Automate all these steps in a CI/CD pipeline.
 
-Completed Tasks:
+## Completed Tasks:
 1. Manifests for pod, service, and ingress are written and automated.
 1. DNS requirements are automated
 1. cert-manager auto-generates certs when an ingress resource is created
