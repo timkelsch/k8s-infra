@@ -1,13 +1,12 @@
 export AWS_PROFILE=kubeground-kops
 export NAME=thekubeground.com
 export KOPS_STATE_STORE=s3://kops-cluster-state-5582a348e45d656f
-export NODE_SIZE=t3.micro
 export CP_SIZE=t3.medium
-export SSH_KEY=~/.ssh/thekubeground.pem
+export NODE_SIZE=t3.micro
 export OIDC_BUCKET=s3://oidc-5582a348e45d656f
 export BACKUP_BUCKET=s3://kops-cluster-backup-5582a348e45d656f
+export SSH_KEY=~/.ssh/thekubeground.pem
 export DATE_TIME=$(shell date +%Y%m%d-%H%M%S)
-# export URL=$(shell kubectl get svc nginx-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 export NGINX_IC_INSTALLER=install-nginx-ic.sh
 export APP_INSTALLER=install-app.sh
 export CNAME_CREATOR=create-cname.sh
@@ -68,12 +67,9 @@ set-imds-hops:
 	aws ec2 modify-instance-metadata-options --http-put-response-hop-limit 2 \
 		--region us-west-2 --instance-id i-0f1fd4bea980e7b29
 
-# check-website:
-# 	curl http://${URL}
-
 install-nginx-ic:
 	cd scripts && ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" \
-		-i ~/.ssh/v1.pem ubuntu@api.thekubeground.com 'bash -s' < \
+		-i ${SSH_KEY} ubuntu@api.thekubeground.com 'bash -s' < \
 		"${NGINX_IC_INSTALLER}"
 
 deploy-application:
@@ -85,6 +81,13 @@ create-cname:
 ssh-cp:
 	ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" \
 		-i ${SSH_KEY} ubuntu@api.thekubeground.com
+
+
+
+# export URL=$(shell kubectl get svc nginx-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+# check-website:
+# 	curl http://${URL}
 
 #create-cluster:
 #	kops create cluster \

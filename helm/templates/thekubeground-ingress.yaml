@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: thekubeground-ingress
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-staging"
+spec:
+  ingressClassName: {{ .Values.ingressClassName }}
+  rules:
+    - host: www.thekubeground.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gonzo-svc
+                port: 
+                  number: 80
+  tls:
+    - hosts:
+        - www.thekubeground.com  # The same domain name as the rule
+      secretName: letsencrypt-secret  # Reference the secret containing the certificate

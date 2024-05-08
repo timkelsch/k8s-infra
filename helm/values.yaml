@@ -1,0 +1,5 @@
+replicaCount: 1
+image: nginx
+imagePullPolicy: Always
+ingressClassName: nginx
+letsEncryptEmail: ""  # Update with your email address

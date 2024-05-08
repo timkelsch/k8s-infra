@@ -43,7 +43,7 @@ This project bootstraps a Kubernetes cluster in AWS without using EKS.
     `$ make deploy-application`
 3. Create the CNAME record linking www.thekubeground.com with our AWS CLB.
 
-    `$ make generate-cname`
+    `$ make create-cname`
 
 
 ## Create and Expose an App to the Internet via AWS Load Balancer Controller:

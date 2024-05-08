@@ -1,0 +1,16 @@
+name: gonzo
+version: 1.0.0
+description: A Helm chart for deploying a secure Nginx application with Let's Encrypt for staging environment.
+maintainers:
+  - Your Name <your.email@example.com>
+sources:
+  - https://github.com/helm/charts (for reference)
+keywords:
+  - nginx
+  - cert-manager
+  - letsencrypt
+  - ingress
+dependencies:
+  - name: cert-manager
+    version: ^1.x.x
+    repository: https://charts.jetstack.io

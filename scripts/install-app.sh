@@ -3,7 +3,6 @@
 set -euxo pipefail
 
 K=$(which kubectl)
-# CERTIFICATE_NAME="thekubeground.com"
 NAMESPACE="gonzo"
 
 # preventing it from being run in the root dir of the git repo
@@ -15,13 +14,6 @@ fi
 
 ${K} get namespace ${NAMESPACE} || ${K} create namespace ${NAMESPACE}
 
-# ${K} apply -f ../manifests/nginx-pod.yml
-# ${K} apply -f ../manifests/gonzo-svc.yml
-# ${K} apply -f ../manifests/cert-manager/issuer.yml
-# ${K} apply -f ../manifests/ingress.yml
-
-# write a function that checks whether a resource with name == metadata.name
-# already exists in the cluster, and deploys it if not.
 deploy () {
   NAME=$(yq -r '.metadata.name' "$1")
   TYPE=$(yq -r '.kind' "$1")

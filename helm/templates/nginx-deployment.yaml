@@ -4,11 +4,11 @@ metadata:
   labels:
     run: nginx
   name: nginx
-  namespace: gonzo
+  namespace: {{ .Release.Namespace }}
 spec:
   containers:
-    - image: nginx
-      imagePullPolicy: Always
+    - image: {{ .Values.image }}
+      imagePullPolicy: {{ .Values.imagePullPolicy }}
       name: nginx
       ports:
         - containerPort: 80

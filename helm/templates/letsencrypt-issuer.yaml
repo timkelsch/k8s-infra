@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-stage
+  namespace: {{ .Release.Namespace }}
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: {{ .Values.letsEncryptEmail }}  # Update with your actual email
+    privateKeySecretRef:
+      name: letsencrypt-secret
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: {{ .Values.ingressClassName }}
