@@ -35,3 +35,5 @@ terraform.rc
 
 # Vim undo files
 *.un~
+
+scripts/*.json

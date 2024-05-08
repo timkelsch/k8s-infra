@@ -73,10 +73,6 @@ spec:
     dns:
       type: Public
 ---
-# Please edit the object below. Lines beginning with a '#' will be ignored,
-# and an empty file will abort the edit. If an error occurs while saving this file will be
-# reopened with the relevant failures.
-#
 apiVersion: kops.k8s.io/v1alpha2
 kind: InstanceGroup
 metadata:
@@ -92,14 +88,11 @@ spec:
         #!/bin/bash
         set -euxo pipefail
         snap install helm --classic
+        snap install yq
         echo "source <(kubectl completion bash)" >> /home/ubuntu/.bashrc # add autocomplete permanently
         echo 'alias k=kubectl' >> /home/ubuntu/.bashrc
         echo 'complete -o default -F __start_kubectl k' >> /home/ubuntu/.bashrc
         helm completion bash > /etc/bash_completion.d/helm
-        curl -L https://istio.io/downloadIstio | sh -
-        cd $(ls | grep istio)
-        export PATH=$PWD/bin:$PATH
-        istioctl install --set profile=demo -y
   image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20240126
   machineType: t3.medium
   maxSize: 1
@@ -108,11 +101,6 @@ spec:
   subnets:
   - us-west-2a
 ---
----
-# Please edit the object below. Lines beginning with a '#' will be ignored,
-# and an empty file will abort the edit. If an error occurs while saving this file will be
-# reopened with the relevant failures.
-#
 apiVersion: kops.k8s.io/v1alpha2
 kind: InstanceGroup
 metadata:
@@ -127,17 +115,11 @@ spec:
     content: |
         #!/bin/bash
         set -euxo pipefail
-        snap install helm --classic
         echo "source <(kubectl completion bash)" >> /home/ubuntu/.bashrc # add autocomplete permanently
         echo 'alias k=kubectl' >> /home/ubuntu/.bashrc
         echo 'complete -o default -F __start_kubectl k' >> /home/ubuntu/.bashrc
-        helm completion bash > /etc/bash_completion.d/helm
-        curl -L https://istio.io/downloadIstio | sh -
-        cd $(ls | grep istio)
-        export PATH=$PWD/bin:$PATH
-        istioctl install --set profile=demo -y
   image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20240126
-  machineType: t3.medium
+  machineType: t3.small
   maxSize: 1
   minSize: 1
   role: Node

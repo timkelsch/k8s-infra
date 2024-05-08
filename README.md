@@ -21,7 +21,7 @@ Build from Scratch in Dedicated Account with Dedicated Domain:
     ```
 1. Create k8s cluster via kOps:
     ```
-    make update-cluster-execute
+    make build-cluster
     ```
 1. Fix the kubeconfig:
     ```
@@ -31,3 +31,53 @@ Build from Scratch in Dedicated Account with Dedicated Domain:
     ```
     sshk # ssh -i ~/.ssh/v1.pem ubuntu@api.thekubeground.com
     ```
+
+Create a Service and Expose it to the Internet via NGINX Ingress Controller:
+1. Install the Nginx Ingress Controller via Helm:
+    ```
+    make install-nginx-ic
+    ```
+2. Deploy pod, service, ingress resources
+    ```
+    make deploy-application
+    ```
+3. Create the CNAME record linking www.thekubeground.com with our AWS CLB.
+    ```
+    make generate-cname
+    ```
+
+
+Create a Service and Expose it to Internet via AWS Load Balancer Controller:
+
+1. Fix the aws-cluster-controller inline role policy:
+    ```
+    make update-aws-cluster-controller-policy
+    ```
+1. Set the IMDS hops:
+    ```
+    make set-imds-hops
+    ```
+1. Log into the control plane node:
+    ```
+    sshk # ssh -i ~/.ssh/v1.pem ubuntu@api.thekubeground.com
+    ```
+1. Create a web server:
+    ```
+    k run nginx --image nginx --port 80
+    ```
+1. Expose the pod with a LoadBalancer service:
+    ```
+    k expose pod nginx --name=nginx-svc --type=LoadBalancer
+    ```
+1. Verify your work:
+    ```
+    make check-website
+    ```
+
+Tasks:
+1. Set up SSL on ELB
+
+
+Comleted Tasks:
+1. Implemented manual cluster backup
+1. Got aws-load-balancer-controller working
